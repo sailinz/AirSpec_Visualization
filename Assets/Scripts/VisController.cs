@@ -135,6 +135,7 @@ public class VisController : MonoBehaviour
     private float _ambienHum;
     private float _iaqValue;
     private float _luxValue;
+    private Color _spectralValue;
 
     private float _cogValuePrev = -1; 
     private float _templeTempValuePrev = -1;
@@ -144,6 +145,7 @@ public class VisController : MonoBehaviour
     private float _ambienHumPrev = -1;
     private float _iaqValuePrev = -1;
     private float _luxValuePrev = -1; 
+    private Color _spectralValuePrev = new Color(0,0,0);
 
     private List<float> _aqMaxValues; 
     private List<float> _aqMinValues; 
@@ -334,9 +336,17 @@ public class VisController : MonoBehaviour
 
         if(_iaqValue != _iaqValuePrev)
         {
+
             _iaqText.text = "IAQ index: " + Math.Round(_iaqValue, 2);
-            _IAQcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_IAQcursorOriginalX + _iaqValue/500f*800f, _IAQcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
             _iaqValuePrev = _iaqValue;
+            if(_iaqValue < 500)
+            {
+                _IAQcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_IAQcursorOriginalX + _iaqValue/400f*800f, _IAQcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
+            }else
+            {
+                _IAQcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_IAQcursorOriginalX + 800f, _IAQcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
+            }
+            
         }
         
         //now hard-coded...
@@ -404,6 +414,12 @@ public class VisController : MonoBehaviour
             _luxText.text = "Light intensity: " + Math.Round(_luxValue, 2)  + " Lux";
             _luxValuePrev = _luxValue;
                         
+        }
+
+        if(_spectralValuePrev != _spectralValue)
+        {
+            _spectralImg.GetComponent<Image>().color = _spectralValue; 
+            UnityEngine.Debug.Log("Light color: " + _spectralValue);
         }
     }
 
@@ -671,6 +687,14 @@ public class VisController : MonoBehaviour
                     {
                         Console.WriteLine("{0} Exception caught.", e);
                     }
+                }
+                else if (result[0] == "Spec")
+                {
+                    float red = (float)Convert.ToDouble(result[1]); // 0->1.0
+	                float green = (float)Convert.ToDouble(result[2]); // 0->1.0
+		            float blue = (float)Convert.ToDouble(result[3]); // 0->1.0
+                    _spectralValue = new Color(red, green, blue);
+                    // Console.WriteLine(result[0]);
                 }
             }  
         }
