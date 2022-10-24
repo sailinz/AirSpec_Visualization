@@ -36,13 +36,13 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
+     <Compile Include="Assets/Plugins/ScreenshotCompanion/ScreenshotCompanion.cs" />
      <Compile Include="Assets/Plugins/Pixelplacement/iTween/Sample/MoveSample.cs" />
+     <Compile Include="Assets/Plugins/ScreenshotCompanion/Framework/SettingsObject.cs" />
      <Compile Include="Assets/Plugins/Pixelplacement/iTween/iTween.cs" />
      <Compile Include="Assets/Plugins/Pixelplacement/iTween/Sample/RotateSample.cs" />
      <Compile Include="Assets/Plugins/Pixelplacement/iTween/Sample/SampleInfo.cs" />
      <Compile Include="Assets/Plugins/ScreenshotCompanion/Framework/CameraObject.cs" />
-     <Compile Include="Assets/Plugins/ScreenshotCompanion/ScreenshotCompanion.cs" />
-     <Compile Include="Assets/Plugins/ScreenshotCompanion/Framework/SettingsObject.cs" />
      <None Include="Assets/Plugins/Pixelplacement/iTween/ReadMe!/ReadMe!.txt" />
     <Reference Include="UnityEngine">
         <HintPath>/Applications/Unity/Hub/Editor/2022.1.18f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>

@@ -48,8 +48,8 @@ public class VisController : MonoBehaviour
     [Header("UI elements")]
     public TMPro.TextMeshProUGUI _cogText; 
     public TMPro.TextMeshProUGUI _templeTempText;
+    public TMPro.TextMeshProUGUI _VOCindexText; 
     public TMPro.TextMeshProUGUI _VOCText; 
-    public TMPro.TextMeshProUGUI _eVOCText; 
     public Image _eVOCcursor; 
     public TMPro.TextMeshProUGUI _NOxText; 
     public Image _NOxcursor; 
@@ -110,13 +110,13 @@ public class VisController : MonoBehaviour
     const float THERMOPILE_COG_MIN = 0; 
     const float THERMOPILE_TEMPLE_MAX = 308;
     const float THERMOPILE_TEMPLE_MIN = 294;
-    const float SGP_GAS_VOC_MAX = 200; // env (average 100) 500
+    const float SGP_GAS_VOC_MAX = 200; // env (average 100) 500; INDEX
     const float SGP_GAS_VOC_MIN = 50; // 1
-    const float SGP_GAS_NOx_MAX = 100; // env (theoretically the range is 1-500, average 1)
+    const float SGP_GAS_NOx_MAX = 100; // env (theoretically the range is 1-500, average 1); INDEX
     const float SGP_GAS_NOx_MIN = 1; 
     const float BME_CO2_EQ_MAX = 1700; // bioeffluence
     const float BME_CO2_EQ_MIN = 600;
-    const float BME_VOC_EQ_MAX = 2; // env 2000
+    const float BME_VOC_EQ_MAX = 2000; // env 2000; ppm
     const float BME_VOC_EQ_MIN = 0; //0
     const float SHT45_TEMP_MAX = 35;
     const float SHT45_TEMP_MIN = 24; // 20
@@ -179,9 +179,9 @@ public class VisController : MonoBehaviour
         _aqFaceText = new List<TMPro.TextMeshProUGUI>(new TMPro.TextMeshProUGUI[aqFaceSensorNo]);
         _aqValuesPrev = new List<float>(){-1f, -1f, -1f};
         _aqFaceValuesPrev = new List<float>(){-1f, -1f, -1f};
-        _aqTextNames = new List<string>(){"VOC: ", "NOx index: ", "VOC index: "};
+        _aqTextNames = new List<string>(){"VOC index: ", "NOx index: ", "VOC: "};
         _aqFaceTextNames = new List<string>(){"eCO2: "};
-        _aqTextUnits = new List<string>(){" ppm", "", ""}; //eVOC and NOx are index: no units; " ppm", " (avg: 1)", " (avg: 100)"
+        _aqTextUnits = new List<string>(){"", "", " ppm"}; //eVOC and NOx are index: no units; " ppm", " (avg: 1)", " (avg: 100)"
         _aqFaceTextUnits = new List<string>(){" ppm"};
 
 
@@ -189,17 +189,17 @@ public class VisController : MonoBehaviour
         _aqMinValues = new List<float>(new float[aqSensorNo]);
         _aqFaceMinValues = new List<float>(new float[aqFaceSensorNo]);  
         _aqFaceMaxValues = new List<float>(new float[aqFaceSensorNo]);  
-        _aqMaxValues[0] = SGP_GAS_VOC_MAX;
-        _aqMaxValues[1] = SGP_GAS_NOx_MAX;
-        _aqMaxValues[2] = BME_VOC_EQ_MAX;
+        _aqMaxValues[0] = SGP_GAS_VOC_MAX; // INDEX
+        _aqMaxValues[1] = SGP_GAS_NOx_MAX; // INDEX
+        _aqMaxValues[2] = BME_VOC_EQ_MAX; // ppm
         _aqMinValues[0] = SGP_GAS_VOC_MIN;
         _aqMinValues[1] = SGP_GAS_NOx_MIN;
         _aqMinValues[2] = BME_VOC_EQ_MIN;
         _aqFaceMaxValues[0] = BME_CO2_EQ_MAX;
         _aqFaceMinValues[0] =BME_CO2_EQ_MIN ;
-        _aqText[0] = _VOCText;
+        _aqText[0] = _VOCindexText;
         _aqText[1] = _NOxText;
-        _aqText[2] = _eVOCText;
+        _aqText[2] = _VOCText;
         _aqFaceText[0] = _CO2Text;
 
         
@@ -322,11 +322,11 @@ public class VisController : MonoBehaviour
                 _aqText[i].text = _aqTextNames[i] + Math.Round(_aqValues[i], 2) + _aqTextUnits[i];
                 // UnityEngine.Debug.Log("AQ" + i + " : " + _aqValues[i]);
 
-                if(i == 1) // VOC index
+                if(i == 0) // VOC index (annocated as eVOC)
                 {
                     _eVOCcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_eVOCcursorOriginalX + _aqValues[i]/500f*800f, _eVOCcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
                 }
-                if(i == 2) // NOx index
+                if(i == 1) // NOx index
                 {
                     _NOxcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_NOxcursorOriginalX + _aqValues[i]/500f*800f, _NOxcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
                 }
@@ -419,7 +419,7 @@ public class VisController : MonoBehaviour
         if(_spectralValuePrev != _spectralValue)
         {
             _spectralImg.GetComponent<Image>().color = _spectralValue; 
-            UnityEngine.Debug.Log("Light color: " + _spectralValue);
+            // UnityEngine.Debug.Log("Light color: " + _spectralValue);
         }
     }
 
@@ -599,7 +599,7 @@ public class VisController : MonoBehaviour
                         
                         _aqValues[0] = voc_index;
                         _aqValues[1] = nox_index;
-                        UnityEngine.Debug.Log(result[2]);
+                        // UnityEngine.Debug.Log(result[2]);
 
                     }catch (Exception e)
                     {
@@ -643,9 +643,9 @@ public class VisController : MonoBehaviour
                 else if (result[0] == "BME_VOC_EQ")
                 {
                     try{
-                        float voc_index = (float)Convert.ToDouble(result[1]); // breath VOC concentration estimate [ppm]
-                        _aqValues[2] = voc_index;
-                        // UnityEngine.Debug.Log(result[0]);
+                        float voc_ppm = (float)Convert.ToDouble(result[1]); // breath VOC concentration estimate [ppm]
+                        _aqValues[2] = voc_ppm;
+                        // UnityEngine.Debug.Log(voc_ppm);
                     }catch (Exception e)
                     {
                         Console.WriteLine("{0} Exception caught.", e);
