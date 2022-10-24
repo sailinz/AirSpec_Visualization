@@ -50,16 +50,26 @@ public class VisController : MonoBehaviour
     public TMPro.TextMeshProUGUI _templeTempText;
     public TMPro.TextMeshProUGUI _VOCText; 
     public TMPro.TextMeshProUGUI _eVOCText; 
+    public Image _eVOCcursor; 
     public TMPro.TextMeshProUGUI _NOxText; 
+    public Image _NOxcursor; 
     public TMPro.TextMeshProUGUI _CO2Text; 
     public TMPro.TextMeshProUGUI _ambientTempText;
     public TMPro.TextMeshProUGUI _ambienHumText;
     private List<TMPro.TextMeshProUGUI> _aqText;
     private List<TMPro.TextMeshProUGUI> _aqFaceText;
+    public TMPro.TextMeshProUGUI _iaqText;
+    public Image _IAQcursor; 
     private List<string> _aqTextNames;
     private List<string> _aqFaceTextNames;
     private List<string> _aqTextUnits;
     private List<string> _aqFaceTextUnits;
+    public TMPro.TextMeshProUGUI _luxText;
+    public Image _spectralImg;
+
+    private float _eVOCcursorOriginalX;
+    private float _NOxcursorOriginalX;
+    private float _IAQcursorOriginalX;
 
 
     [Header("Prefabs")]
@@ -123,6 +133,8 @@ public class VisController : MonoBehaviour
     private List<float> _aqFaceValues; //x1
     private float _ambientTemp;
     private float _ambienHum;
+    private float _iaqValue;
+    private float _luxValue;
 
     private float _cogValuePrev = -1; 
     private float _templeTempValuePrev = -1;
@@ -130,6 +142,8 @@ public class VisController : MonoBehaviour
     private List<float> _aqFaceValuesPrev; //x1
     private float _ambientTempPrev = -1;
     private float _ambienHumPrev = -1;
+    private float _iaqValuePrev = -1;
+    private float _luxValuePrev = -1; 
 
     private List<float> _aqMaxValues; 
     private List<float> _aqMinValues; 
@@ -153,6 +167,9 @@ public class VisController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        _eVOCcursorOriginalX = _eVOCcursor.GetComponent<RectTransform>().anchoredPosition.x;
+        _NOxcursorOriginalX = _NOxcursor.GetComponent<RectTransform>().anchoredPosition.x;
+        _IAQcursorOriginalX = _IAQcursor.GetComponent<RectTransform>().anchoredPosition.x;
 
         _aqValues = new List<float>(new float[aqSensorNo]);
         _aqText = new List<TMPro.TextMeshProUGUI>(new TMPro.TextMeshProUGUI[aqSensorNo]);
@@ -160,9 +177,9 @@ public class VisController : MonoBehaviour
         _aqFaceText = new List<TMPro.TextMeshProUGUI>(new TMPro.TextMeshProUGUI[aqFaceSensorNo]);
         _aqValuesPrev = new List<float>(){-1f, -1f, -1f};
         _aqFaceValuesPrev = new List<float>(){-1f, -1f, -1f};
-        _aqTextNames = new List<string>(){"VOC: ", "NOx: ", "eVOC: "};
-        _aqFaceTextNames = new List<string>(){"CO2: "};
-        _aqTextUnits = new List<string>(){" ppm", " (avg: 1)", " (avg: 100)"}; //eVOC and NOx are index: no units
+        _aqTextNames = new List<string>(){"VOC: ", "NOx index: ", "VOC index: "};
+        _aqFaceTextNames = new List<string>(){"eCO2: "};
+        _aqTextUnits = new List<string>(){" ppm", "", ""}; //eVOC and NOx are index: no units; " ppm", " (avg: 1)", " (avg: 100)"
         _aqFaceTextUnits = new List<string>(){" ppm"};
 
 
@@ -271,11 +288,13 @@ public class VisController : MonoBehaviour
             if(normalized_cog > 0){
                 _cogload.GetComponent<MeshRenderer>().material.SetColor("_EmissionColor", new Color(1.0f,1.0f,0.8f) * (Math.Abs(normalized_cog) + 0.1f));
                 _cogValuePrev = _cogValue;
-                _cogText.text = "Cognitive load: " + Math.Round(_cogValue, 2); //+ " °C";
+                
                 // UnityEngine.Debug.Log("cog: " + _cogValue);
             }else{
                 _cogload.GetComponent<MeshRenderer>().material.SetColor("_EmissionColor", new Color(1.0f,1.0f,0.8f) * 0.1f);
+                // _cogText.text = "Cognitive load: 0"; //+ " °C";
             }
+            _cogText.text = "Cognitive load: " + Math.Round(_cogValue, 2); //+ " °C";
             
         }
             
@@ -300,9 +319,26 @@ public class VisController : MonoBehaviour
                 _aqValuesPrev[i] = _aqValues[i];
                 _aqText[i].text = _aqTextNames[i] + Math.Round(_aqValues[i], 2) + _aqTextUnits[i];
                 // UnityEngine.Debug.Log("AQ" + i + " : " + _aqValues[i]);
+
+                if(i == 1) // VOC index
+                {
+                    _eVOCcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_eVOCcursorOriginalX + _aqValues[i]/500f*800f, _eVOCcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
+                }
+                if(i == 2) // NOx index
+                {
+                    _NOxcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_NOxcursorOriginalX + _aqValues[i]/500f*800f, _NOxcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
+                }
+                
             }
         }
 
+        if(_iaqValue != _iaqValuePrev)
+        {
+            _iaqText.text = "IAQ index: " + Math.Round(_iaqValue, 2);
+            _IAQcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_IAQcursorOriginalX + _iaqValue/500f*800f, _IAQcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
+            _iaqValuePrev = _iaqValue;
+        }
+        
         //now hard-coded...
  
         //face (bioeffluence)
@@ -361,9 +397,17 @@ public class VisController : MonoBehaviour
             _ambientTempText.text = "Ambient temperature: " + Math.Round(_ambientTemp, 2) + " °C";
             // UnityEngine.Debug.Log("Ambient temp: " + _ambientTemp);
         }  
+
+        // Lighting //
+        if(_luxValue != _luxValuePrev)
+        {
+            _luxText.text = "Light intensity: " + Math.Round(_luxValue, 2)  + " Lux";
+            _luxValuePrev = _luxValue;
+                        
+        }
     }
 
-    // execute other scripts (e.g., python) via terminal
+    // execute other scripts (e.g., python) via terminal -- a workaround for the server-client communication issue [NOW RESOLVED -> we can ignore this]
     public static Process ExecuteCommand(string command)
     {
         // Process proc = new System.Diagnostics.Process ();
@@ -391,19 +435,25 @@ public class VisController : MonoBehaviour
     // close the TCP socket! Otherwise it will become a zumbie keep occupying the port
     private void stopClient() { 
 
-        Thread.Sleep(3000);
+        Thread.Sleep(3000); //need to give some buffer for the background thread (for data receiving) to close! 
         //stop thread
         if (clientReceiveThread != null)
         {
-            nwStream.Close();
-            client.Close();
-            clientReceiveThread.Abort();
-            // processUnityParser.Kill();
-            // processConnServer.Kill();
-            
-        }
+            try
+            {
+                nwStream.Close();
+                client.Close();
+                clientReceiveThread.Abort();
+                // processUnityParser.Kill();
+                // processConnServer.Kill();
 
-        UnityEngine.Debug.Log("TCP client stopped: thread - " + clientReceiveThread.ThreadState + "; client connected? - " + client.Connected);
+                UnityEngine.Debug.Log("TCP client stopped: thread - " + clientReceiveThread.ThreadState + "; client connected? - " + client.Connected); 
+            }catch
+            {
+                clientReceiveThread.Abort();
+                UnityEngine.Debug.Log("No previous connected TCP client was found. Just close the thread.");
+            }        
+        }   
     }
 
     // private void OnApplicationQuit()
@@ -505,7 +555,7 @@ public class VisController : MonoBehaviour
                         _cogValue = (float)Convert.ToDouble(result[1]); // difference of two temperature values
                         // this value is the difference between a temple measurement and the tip of the nose
                         //   (i.e., TEMPLE_TEMP - NOSE_TEMP = THERMOPILE_COG)
-                        // UnityEngine.Debug.Log(result[0]);
+                        // UnityEngine.Debug.Log(result[1]);
                     }catch (Exception e)
                     {
                         Console.WriteLine("{0} Exception caught.", e);
@@ -533,7 +583,7 @@ public class VisController : MonoBehaviour
                         
                         _aqValues[0] = voc_index;
                         _aqValues[1] = nox_index;
-                        // UnityEngine.Debug.Log(result[0]);
+                        UnityEngine.Debug.Log(result[2]);
 
                     }catch (Exception e)
                     {
@@ -555,6 +605,7 @@ public class VisController : MonoBehaviour
                         */
                     try{
                         float IAQ = (float)Convert.ToDouble(result[1]);
+                        _iaqValue = IAQ;
                         // UnityEngine.Debug.Log(result[0]);
                     }catch (Exception e)
                     {
@@ -601,6 +652,7 @@ public class VisController : MonoBehaviour
                 {
                     try{
                         float lux = (float)Convert.ToDouble(result[1]); // light intensity [lux]
+                        _luxValue = lux;
                         // UnityEngine.Debug.Log(result[0]);
                     }catch (Exception e)
                     {
