@@ -116,7 +116,7 @@ public class VisController : MonoBehaviour
     const float SGP_GAS_NOx_MIN = 0; 
     const float BME_CO2_EQ_MAX = 1700; // bioeffluence
     const float BME_CO2_EQ_MIN = 600;
-    const float BME_VOC_EQ_MAX = 5; // env 2000; ppm
+    const float BME_VOC_EQ_MAX = 150; // env 2000; ppm
     const float BME_VOC_EQ_MIN = 0; //0
     const float SHT45_TEMP_MAX = 35;
     const float SHT45_TEMP_MIN = 24; // 20
