@@ -112,11 +112,11 @@ public class VisController : MonoBehaviour
     const float THERMOPILE_TEMPLE_MIN = 294;
     const float SGP_GAS_VOC_MAX = 200; // env (average 100) 500; INDEX
     const float SGP_GAS_VOC_MIN = 50; // 1
-    const float SGP_GAS_NOx_MAX = 100; // env (theoretically the range is 1-500, average 1); INDEX
-    const float SGP_GAS_NOx_MIN = 1; 
+    const float SGP_GAS_NOx_MAX = 2; // env (theoretically the range is 1-500, average 1); INDEX
+    const float SGP_GAS_NOx_MIN = 0; 
     const float BME_CO2_EQ_MAX = 1700; // bioeffluence
     const float BME_CO2_EQ_MIN = 600;
-    const float BME_VOC_EQ_MAX = 2000; // env 2000; ppm
+    const float BME_VOC_EQ_MAX = 5; // env 2000; ppm
     const float BME_VOC_EQ_MIN = 0; //0
     const float SHT45_TEMP_MAX = 35;
     const float SHT45_TEMP_MIN = 24; // 20
@@ -220,12 +220,13 @@ public class VisController : MonoBehaviour
             
         }
 
-        var psmain1 = _aqParticles[0].GetComponent<ParticleSystem>().main;
-        psmain1.startSize = 20f;
-        var psmain2 = _aqParticles[1].GetComponent<ParticleSystem>().main;
+        var psmain0 = _aqParticles[0].GetComponent<ParticleSystem>().main; // VOC index
+        psmain0.startSize = 20f;
+        var psmain1 = _aqParticles[1].GetComponent<ParticleSystem>().main; // NOx
+        psmain1.startSize = 5f;
+        var psmain2 = _aqParticles[2].GetComponent<ParticleSystem>().main; // VOC
         psmain2.startSize = 12f;
-        var psmain3 = _aqParticles[2].GetComponent<ParticleSystem>().main;
-        psmain3.startSize = 5f;
+
 
         // air quality (face)
         // color palette: https://www.researchgate.net/publication/236595099_Perceptual_difference_in_L_a_b_color_space_as_the_base_for_object_colour_identfication/figures?lo=1
@@ -314,9 +315,10 @@ public class VisController : MonoBehaviour
                 float normalized_aqValue = (_aqValues[i] - _aqMinValues[i])/(_aqMaxValues[i] - _aqMinValues[i]); 
                 
                 if (normalized_aqValue > 0){
-                    emission.rateOverTime = normalized_aqValue * 20 + 5; // updated to sensor readings
+                    emission.rateOverTime = normalized_aqValue * 20f+1; // updated to sensor readings
                 }else{
-                    emission.rateOverTime = 5; // be updated to sensor readings
+                    // UnityEngine.Debug.Log(i + ":" + normalized_aqValue*20);
+                    emission.rateOverTime = 1; // be updated to sensor readings
                 }
                 _aqValuesPrev[i] = _aqValues[i];
                 _aqText[i].text = _aqTextNames[i] + Math.Round(_aqValues[i], 2) + _aqTextUnits[i];
@@ -325,10 +327,12 @@ public class VisController : MonoBehaviour
                 if(i == 0) // VOC index (annocated as eVOC)
                 {
                     _eVOCcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_eVOCcursorOriginalX + _aqValues[i]/500f*800f, _eVOCcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
+                    
                 }
                 if(i == 1) // NOx index
                 {
                     _NOxcursor.GetComponent<RectTransform>().anchoredPosition = new Vector3 (_NOxcursorOriginalX + _aqValues[i]/500f*800f, _NOxcursor.GetComponent<RectTransform>().anchoredPosition.y, 0);
+                    // UnityEngine.Debug.Log(normalized_aqValue*20);
                 }
                 
             }
